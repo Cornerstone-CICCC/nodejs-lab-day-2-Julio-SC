@@ -1,0 +1,81 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout>
+  <h1>Profile</h1>
+
+  <div id="profile-info" style="display: none;">
+    <p><strong>Username:</strong> <span id="username"></span></p>
+    <p><strong>First Name:</strong> <span id="firstname"></span></p>
+    <p><strong>Last Name:</strong> <span id="lastname"></span></p>
+    
+    <button id="logoutBtn">Logout</button>
+  </div>
+
+  <p id="error-message" style="color: red; display: none;"></p>
+</Layout>
+
+<script>
+  async function getUserData() {
+    try {
+      const res = await fetch(`http://localhost:3500/check-auth`, {
+        method: "GET",
+        credentials: "include"
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        const usernameElem = document.getElementById("username");
+        const firstnameElem = document.getElementById("firstname");
+        const lastnameElem = document.getElementById("lastname");
+        const profileInfo = document.getElementById("profile-info");
+        const errorMessage = document.getElementById("error-message");
+
+        if (usernameElem && firstnameElem && lastnameElem && profileInfo) {
+          usernameElem.textContent = data.username;
+          firstnameElem.textContent = data.firstname;
+          lastnameElem.textContent = data.lastname;
+          profileInfo.style.display = "block";
+        }
+      } else {
+        const errorMessage = document.getElementById("error-message");
+        if (errorMessage) {
+          errorMessage.textContent = data.error || 'Unauthorized! Please log in.';
+        }
+
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000); // Redirige después de 2 segundos
+      }
+    } catch (error) {
+      const errorMessage = document.getElementById("error-message");
+      if (errorMessage) {
+        errorMessage.textContent = 'Error fetching data.';
+      }
+    }
+}
+
+getUserData();
+
+// Logout
+const logoutBtn = document.querySelector("#logoutBtn");
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    const res = await fetch(`http://localhost:3500/logout`, {
+      method: "GET",
+      credentials: "include"
+    });
+
+    if (res.ok) {
+      alert("Logged out successfully!");
+      window.location.href = "/login";
+    } else {
+      alert("Failed to log out.");
+    }
+  });
+}
+
+</script>
